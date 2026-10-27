@@ -1,0 +1,17 @@
+---
+import { html } from '../lib/content';
+interface Props { cards: { title: string; body: string }[] }
+const { cards } = Astro.props;
+const stages = cards.map(card => ({ ...card, items: [...card.body.matchAll(/^- (.+)$/gm)].map(match => match[1]) }));
+const lastBody = cards.at(-1)?.body || '';
+const note = lastBody.slice(lastBody.lastIndexOf('\n- ')).split('\n\n').slice(1).join('\n\n').trim();
+const noteHtml = html(note.replaceAll('](/#contact)', '](/?service=Business%20website%20design%20and%20development#contact)'));
+const descriptions = ['Set the direction before design begins.', 'Give your business a clear visual presence.', 'Build, test, and get ready to go live.'];
+---
+<div class="scope-stages">
+  {stages.map((stage, index) => <article class="scope-stage">
+    <div class="scope-stage-heading"><span class="scope-number" aria-hidden="true">0{index + 1}</span><div><h3>{stage.title}</h3><p>{descriptions[index]}</p></div></div>
+    <ul>{stage.items.map(item => <li><span aria-hidden="true">✓</span><span>{item}</span></li>)}</ul>
+  </article>)}
+</div>
+{note && <div class="scope-note prose" set:html={noteHtml} />}

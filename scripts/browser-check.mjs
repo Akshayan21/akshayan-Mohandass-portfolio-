@@ -57,6 +57,34 @@ try {
     await page.goto(origin+'/');
     await page.screenshot({path:`test-results/home-${width}.png`});
   }
+  await page.setViewportSize({width:1280,height:720});
+  await page.goto(origin+'/website-design-development/');
+  await page.waitForSelector('.benefit-sequence.is-pinned');
+  for(const name of ['principles']){
+    const sequence=page.locator(`[data-benefit-sequence="${name}"]`);
+    const benefitStart=await sequence.evaluate(el=>el.parentElement.getBoundingClientRect().top+scrollY-24);
+    await page.evaluate(start=>window.scrollTo({top:start+700,behavior:'instant'}),benefitStart);
+    await page.waitForFunction(name=>new DOMMatrix(getComputedStyle(document.querySelector(`[data-benefit-sequence="${name}"] .benefit-track`)).transform).m41 < -300,name);
+    await sequence.locator('.benefit-card').last().focus();
+    await page.waitForFunction(name=>{const rect=document.querySelector(`[data-benefit-sequence="${name}"] .benefit-card:last-child`).getBoundingClientRect();return rect.left>=0 && rect.right<=innerWidth;},name);
+    await page.screenshot({path:`test-results/website-${name}-horizontal.png`});
+  }
+  const stack=page.locator('[data-stacking-cards]');
+  await page.waitForSelector('.starting-stack.is-stacking');
+  const stackTop=await stack.evaluate(el=>el.getBoundingClientRect().top+scrollY);
+  await page.evaluate(top=>window.scrollTo({top:top+600,behavior:'instant'}),stackTop);
+  assert.equal(await page.locator('.starting-stack-card').first().evaluate(el=>getComputedStyle(el).position),'sticky');
+  await page.waitForFunction(()=>new DOMMatrix(getComputedStyle(document.querySelector('.starting-stack-card')).transform).a<.995);
+  await page.screenshot({path:'test-results/starting-points-stack.png'});
+  await page.emulateMedia({reducedMotion:'reduce'});
+  await page.waitForFunction(()=>!document.querySelector('.benefit-sequence.is-pinned'));
+  assert.equal(await page.locator('.benefit-card:visible').count(),4);
+  await page.waitForFunction(()=>!document.querySelector('.starting-stack.is-stacking'));
+  assert.equal(await page.locator('.starting-stack-card:visible').count(),3);
+  await page.emulateMedia({reducedMotion:'no-preference'});
+  await page.setViewportSize({width:390,height:844});
+  await page.waitForFunction(()=>!document.querySelector('.benefit-sequence.is-pinned'));
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.setViewportSize({width:1440,height:1000});
   await page.goto(origin+'/');
   await page.waitForSelector('.service-explorer.is-interactive');

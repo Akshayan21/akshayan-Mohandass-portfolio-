@@ -3,6 +3,11 @@ import Layout from '../layouts/Layout.astro';
 import Contact from '../components/Contact.astro';
 import Services from '../components/Services.astro';
 import About from '../components/About.astro';
+import WebsitePrinciples from '../components/WebsitePrinciples.astro';
+import StackingCards from '../components/StackingCards.astro';
+import EnquiryQuestions from '../components/EnquiryQuestions.astro';
+import ProjectScope from '../components/ProjectScope.astro';
+import HomeStory from '../components/HomeStory.astro';
 import { files, page, html } from '../lib/content';
 export function getStaticPaths() { return files.map((_, index) => ({ params: { slug: index === 0 ? undefined : ['website-design-development','startup-landing-pages','ui-ux-design'][index - 1] }, props: { index } })); }
 const { index } = Astro.props;
@@ -12,7 +17,7 @@ const service = index === 1 ? 'Business website design and development' : index 
 const render = (s: string) => html(index ? s.replaceAll('](/#contact)', `](/?service=${encodeURIComponent(service)}#contact)`) : s);
 ---
 <Layout title={p.data.seo_title} description={p.data.meta_description} route={p.data.route}>
-  <section class:list={['hero', { 'service-hero': index > 0 }]}>
+  <section data-home-hero={index === 0 ? true : undefined} class:list={['hero', { 'service-hero': index > 0 }]}>
     <div class="hero-meta flex items-center justify-between gap-4"><span>{labels[index]}</span><span class="location">Based in India · Working across the globe</span></div>
     <h1>{p.title}</h1>
     <div class="hero-bottom">
@@ -22,11 +27,16 @@ const render = (s: string) => html(index ? s.replaceAll('](/#contact)', `](/?ser
     <div class="hero-foot"><span>Strategy meets craft. Design meets development.</span><a href={index ? '#section-0' : '#services'}>Explore below ↓</a></div>
   </section>
   {p.sections.map((section, sectionIndex) => (
-    <section id={section.id} data-horizontal={index === 0 && section.kind === 'work' ? true : undefined} class:list={['content-section',section.kind, { 'has-cards': section.cards.length > 0 }]}>
+    <section id={section.id} data-horizontal={index === 0 && section.kind === 'work' ? true : undefined} class:list={['content-section',section.kind, { 'home-story': index === 0 && sectionIndex < 2, 'home-process': index === 0 && section.kind === 'text' && section.cards.length > 0, 'has-cards': section.cards.length > 0, 'enquiry-questions': index === 1 && section.id === 'section-0', 'project-scope': index === 1 && section.heading === 'What your website project can include' }]}>
       <div class="section-heading"><span class="section-marker" aria-hidden="true">✳</span><h2>{section.heading}</h2>{section.kind === 'faq' && <div class="faq-introduction"><p>A few practical details before we start working together.</p><a href="/#contact">Have another question? <span aria-hidden="true">↗</span></a></div>}</div>
-      {section.kind === 'contact' ? <Contact body={section.body} /> :
+      {index === 0 && sectionIndex < 2 ? <HomeStory body={section.body} product={sectionIndex === 1} /> :
+      index === 0 && section.kind === 'text' && section.cards.length > 0 ? <><p class="home-process-label">A clear path from first conversation to handover <span aria-hidden="true">↓</span></p><StackingCards cards={section.cards} themes={['01 / Define','02 / Agree','03 / Refine','04 / Handover']} /></> :
+      index === 1 && section.id === 'section-0' ? <EnquiryQuestions body={section.body} /> : section.kind === 'contact' ? <Contact body={section.body} /> :
       section.kind === 'services' ? <Services cards={section.cards} /> :
       section.kind === 'about' ? <About cards={section.cards} /> :
+      index === 1 && section.heading === 'Website design and development for small businesses' ? <WebsitePrinciples cards={section.cards} /> :
+      index === 1 && section.heading === 'Starting fresh or replacing what you have?' ? <StackingCards cards={section.cards} /> :
+      index === 1 && section.heading === 'What your website project can include' ? <ProjectScope cards={section.cards} /> :
       section.kind === 'faq' ? <div class="faq-list">{section.cards.map(card => <details><summary>{card.title}<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><div class="prose" set:html={render(card.body)} /></div></details>)}</div> :
       section.cards.length ? <><div class="section-intro prose" set:html={render(section.intro)} />{index === 0 && section.kind === 'work' && <div class="work-scroll-controls"><span>Scroll to explore the projects</span><span class="work-counter" data-work-counter aria-hidden="true">01 / {String(section.cards.length).padStart(2,'0')}</span><div class="work-progress" aria-hidden="true"><span /></div><button type="button" data-work-prev aria-label="Previous project">←</button><button type="button" data-work-next aria-label="Next project">→</button><a href={`#${p.sections[sectionIndex + 1]?.id}`}>Continue below ↓</a></div>}<div class="cards-viewport"><div class="content-grid">{section.cards.map((card, i) => <article class="content-card">
         {section.kind === 'work' && <div class:list={['project-art',`project-${i}`]} aria-hidden="true"><span class="project-monogram">{card.title.split(/[ :—]/)[0]}</span><div class="project-shape"></div><span class="project-art-note">Selected work</span></div>}
