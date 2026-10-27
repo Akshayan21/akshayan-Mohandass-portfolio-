@@ -1,0 +1,37 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Contact from '../components/Contact.astro';
+import Services from '../components/Services.astro';
+import About from '../components/About.astro';
+import { files, page, html } from '../lib/content';
+export function getStaticPaths() { return files.map((_, index) => ({ params: { slug: index === 0 ? undefined : ['website-design-development','startup-landing-pages','ui-ux-design'][index - 1] }, props: { index } })); }
+const { index } = Astro.props;
+const p = page(index);
+const labels = ['Independent Designer & Developer','Website Design & Development','Startup Landing Pages','Product UI/UX Design'];
+const service = index === 1 ? 'Business website design and development' : index === 2 ? 'Startup landing page' : 'Product UI/UX design';
+const render = (s: string) => html(index ? s.replaceAll('](/#contact)', `](/?service=${encodeURIComponent(service)}#contact)`) : s);
+---
+<Layout title={p.data.seo_title} description={p.data.meta_description} route={p.data.route}>
+  <section class:list={['hero', { 'service-hero': index > 0 }]}>
+    <div class="hero-meta flex items-center justify-between gap-4"><span>{labels[index]}</span><span class="location">Based in India · Working across the globe</span></div>
+    <h1>{p.title}</h1>
+    <div class="hero-bottom">
+      <div class="hero-symbol" aria-hidden="true"><svg viewBox="0 0 160 160"><path d="M28 132 132 28M28 28h104v104" fill="none" stroke="currentColor" stroke-width="14" /></svg></div>
+      <div class="hero-copy prose" set:html={render(p.hero)} />
+    </div>
+    <div class="hero-foot"><span>Strategy meets craft. Design meets development.</span><a href={index ? '#section-0' : '#services'}>Explore below ↓</a></div>
+  </section>
+  {p.sections.map((section, sectionIndex) => (
+    <section id={section.id} data-horizontal={index === 0 && section.kind === 'work' ? true : undefined} class:list={['content-section',section.kind, { 'has-cards': section.cards.length > 0 }]}>
+      <div class="section-heading"><span class="section-marker" aria-hidden="true">✳</span><h2>{section.heading}</h2>{section.kind === 'faq' && <div class="faq-introduction"><p>A few practical details before we start working together.</p><a href="/#contact">Have another question? <span aria-hidden="true">↗</span></a></div>}</div>
+      {section.kind === 'contact' ? <Contact body={section.body} /> :
+      section.kind === 'services' ? <Services cards={section.cards} /> :
+      section.kind === 'about' ? <About cards={section.cards} /> :
+      section.kind === 'faq' ? <div class="faq-list">{section.cards.map(card => <details><summary>{card.title}<span class="faq-toggle" aria-hidden="true">+</span></summary><div class="faq-answer"><div class="prose" set:html={render(card.body)} /></div></details>)}</div> :
+      section.cards.length ? <><div class="section-intro prose" set:html={render(section.intro)} />{index === 0 && section.kind === 'work' && <div class="work-scroll-controls"><span>Scroll to explore the projects</span><span class="work-counter" data-work-counter aria-hidden="true">01 / {String(section.cards.length).padStart(2,'0')}</span><div class="work-progress" aria-hidden="true"><span /></div><button type="button" data-work-prev aria-label="Previous project">←</button><button type="button" data-work-next aria-label="Next project">→</button><a href={`#${p.sections[sectionIndex + 1]?.id}`}>Continue below ↓</a></div>}<div class="cards-viewport"><div class="content-grid">{section.cards.map((card, i) => <article class="content-card">
+        {section.kind === 'work' && <div class:list={['project-art',`project-${i}`]} aria-hidden="true"><span class="project-monogram">{card.title.split(/[ :—]/)[0]}</span><div class="project-shape"></div><span class="project-art-note">Selected work</span></div>}
+        <div class="card-content"><h3>{card.title}</h3><div class="prose" set:html={render(card.body)} /></div>
+      </article>)}</div></div></> : <div class="section-body prose" set:html={render(section.body)} />}
+    </section>
+  ))}
+</Layout>

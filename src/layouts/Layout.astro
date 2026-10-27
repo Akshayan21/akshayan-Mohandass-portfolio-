@@ -1,0 +1,20 @@
+---
+import '../styles/global.css';
+import '@fontsource-variable/manrope';
+import '@fontsource-variable/bricolage-grotesque';
+interface Props { title: string; description: string; route: string; }
+const { title, description, route } = Astro.props;
+const canonical = Astro.site ? new URL(route, Astro.site).href : undefined;
+const links = [{label:'Work',href:'/#work'},{label:'Website Design',href:'/website-design-development/'},{label:'Product Design',href:'/ui-ux-design/'},{label:'About',href:'/#about'}];
+---
+<!doctype html><html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" /><meta name="description" content={description} /><meta name="theme-color" content="#f5f6f8" /><title>{title}</title><link rel="icon" href="/favicon.svg" type="image/svg+xml" />{canonical && <link rel="canonical" href={canonical} />}<meta property="og:title" content={title} /><meta property="og:description" content={description} /><meta property="og:type" content="website" />{canonical && <meta property="og:url" content={canonical} />}<script type="application/ld+json" set:html={JSON.stringify({'@context':'https://schema.org','@type':'Person',name:'Akshayan Mohandass',jobTitle:'Independent Designer & Developer',email:'akshayanmohandass@gmail.com',...(Astro.site ? {url:Astro.site.href} : {})})} /></head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header"><a class="brand" href="/" aria-label="Akshayan Mohandass home"><span class="brand-mark" aria-hidden="true">am.</span><span>Akshayan<br />Mohandass</span></a>
+    <button class="menu-toggle" aria-expanded="false" aria-controls="main-nav">Menu <span aria-hidden="true">+</span></button>
+    <nav id="main-nav" aria-label="Main navigation">{links.map(link => <a href={link.href} aria-current={route === link.href ? 'page' : undefined}>{link.label}</a>)}<details class="nav-services"><summary>Services</summary><div><a href="/#services">All services</a><a href="/startup-landing-pages/">Startup Landing Pages</a></div></details><a class="nav-contact" href="/#contact">Let’s talk <span aria-hidden="true">↗</span></a></nav>
+  </header>
+  <main id="main"><slot /></main>
+  <footer><div class="footer-top"><a class="footer-name" href="/">Akshayan<br />Mohandass<span aria-hidden="true">↗</span></a><p>Freelance website design, development, and UI/UX design for small businesses and startups.</p></div><div class="footer-links"><a href="/#work">Work</a><a href="/website-design-development/">Website Design</a><a href="/ui-ux-design/">Product Design</a><a href="/startup-landing-pages/">Landing Pages</a><a href="/#about">About</a><a href="/#contact">Contact</a></div><div class="footer-bottom"><span>Based in India</span><span>© 2026 Akshayan Mohandass</span><a href="#main">Back to top ↑</a></div></footer>
+  <script src="../scripts/main.ts"></script>
+</body></html>

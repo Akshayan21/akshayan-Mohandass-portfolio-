@@ -1,0 +1,35 @@
+---
+import { html } from '../lib/content';
+interface Props { cards: { title: string; body: string }[] }
+const { cards } = Astro.props;
+const serviceBody=(body:string)=>{
+  const rendered=html(body);
+  const marker='<p><strong>An engagement can include:</strong></p>';
+  const boundary=rendered.indexOf(marker);
+  if(boundary<0) return rendered;
+  const leadEnd=rendered.indexOf('</p>')+4;
+  const listEnd=rendered.indexOf('</ul>',boundary)+5;
+  return rendered.slice(0,leadEnd)+`<div class="service-narrative">${rendered.slice(leadEnd,boundary)}</div><div class="service-deliverables">${rendered.slice(boundary,listEnd)}</div>`+rendered.slice(listEnd);
+};
+const choices = [
+  { title: 'Business websites', detail: 'Design & development', icon: 'M4 7h24v20H4z M4 12h24 M8 9.5h1 M12 9.5h1 M10 18h12 M10 22h8' },
+  { title: 'Startup landing pages', detail: 'Launch & communicate', icon: 'M8 25 25 8 M10 8h15v15 M5 16v11h11' },
+  { title: 'Product UI/UX', detail: 'Flows, interfaces & prototypes', icon: 'M4 5h10v10H4z M19 5h9v10h-9z M4 20h10v9H4z M19 20h9v9h-9z' },
+  { title: 'Ongoing support', detail: 'Improve & maintain', icon: 'M27 12a11 11 0 1 0 0 10 M27 4v8h-8 M16 10v7l5 3' },
+];
+---
+<p class="service-scroll-hint">Scroll to move through the services <span aria-hidden="true">↓</span></p>
+<div class="service-explorer" data-service-explorer>
+  {cards.slice(0,4).map((card,i) => <div class="service-choice" style={`--service-row:${i+1}`}>
+    <button class="service-selector" id={`service-choice-${i}`} aria-expanded="true" aria-controls={`service-panel-${i}`} type="button">
+      <svg viewBox="0 0 32 34" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d={choices[i].icon} /></svg>
+      <span><span class="service-choice-name">{choices[i].title}</span><span class="service-choice-detail">{choices[i].detail}</span></span>
+      <span class="service-choice-arrow" aria-hidden="true">↗</span>
+    </button>
+    <article class="service-panel" id={`service-panel-${i}`} aria-labelledby={`service-title-${i}`}>
+      <h3 id={`service-title-${i}`}>{card.title}</h3>
+      <div class="prose service-panel-copy" set:html={serviceBody(card.body)} />
+    </article>
+  </div>)}
+</div>
+{cards.slice(4).map(card => <aside class="service-scope"><h3>{card.title}</h3><div class="prose" set:html={html(card.body)} /></aside>)}

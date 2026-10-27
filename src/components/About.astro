@@ -1,0 +1,25 @@
+---
+import { html } from '../lib/content';
+interface Props { cards: {title:string;body:string}[] }
+const { cards } = Astro.props;
+const fields = [
+  {name:'Staffing software',project:'Staffezee',path:'staffezee'},
+  {name:'Education fintech',project:'PayDart',path:'paydart'},
+  {name:'Community platforms',project:'FamConnect',path:'famconnect'},
+  {name:'Mobile health',project:'PregTrack',path:'pregtrack-app'},
+];
+---
+<div class="about-layout">
+  <div class="about-identity">
+    <span class="about-role">Independent designer & developer</span>
+    <div class="about-portrait">
+      <img src="/akshayan-mohandass.jpg" alt="Portrait of Akshayan Mohandass" width="800" height="800" loading="lazy" decoding="async" />
+    </div>
+    <div class="about-signature"><span>Akshayan Mohandass</span><span>Based in India · Working across the globe</span></div>
+  </div>
+  <div class="about-story">{cards.map(card=><><h3>{card.title}</h3><div class="prose" set:html={html(card.body)}/></>)}</div>
+</div>
+<div class="about-experience">
+  <p>Experience across different kinds of products</p>
+  <div class="about-fields">{fields.map(field=><a href={`https://akshayn-mohandass.vercel.app/projects/${field.path}/`}><span class="about-field-name">{field.name}</span><span class="about-field-project">{field.project}<span aria-hidden="true">↗</span></span></a>)}</div>
+</div>

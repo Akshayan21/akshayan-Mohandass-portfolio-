@@ -1,0 +1,35 @@
+---
+import { services } from '../lib/content';
+const serviceLabels = ['Business website', 'Startup landing page', 'Product UI/UX', 'Website improvements', 'Ongoing support', 'Help me define it'];
+---
+<form id="enquiry" class="enquiry">
+  <div class="enquiry-heading"><h3>Project enquiry</h3><p>Tell me a little about your project. We can work out the details together.</p></div>
+  <div class="form-grid">
+    <label>Your name <span class="required-mark" aria-hidden="true">*</span><input name="name" autocomplete="name" required maxlength="120" placeholder="Your full name" /></label>
+    <label>Business or product <span class="optional-label">(optional)</span><input name="business" maxlength="250" placeholder="Company name or website" /></label>
+  </div>
+  <fieldset class="enquiry-services">
+    <legend>Where do you need help?</legend>
+    <div class="enquiry-service-options">
+      {services.map((service, index) => (
+        <label class="enquiry-service-option">
+          <input type="radio" name="service" value={service} checked={index === 0} />
+          <span class="enquiry-service-surface"><span>{serviceLabels[index]}</span><span class="enquiry-service-indicator" aria-hidden="true">✓</span></span>
+        </label>
+      ))}
+    </div>
+  </fieldset>
+  <label>Project details <span class="required-mark" aria-hidden="true">*</span><textarea name="brief" required maxlength="4000" rows="4" placeholder="What are you working on, and how can I help?"></textarea></label>
+  <div class="form-grid">
+    <label>Budget range <span class="optional-label">(optional)</span><input name="budget" maxlength="200" placeholder="Your range, or not decided yet" /></label>
+    <label>Timing <span class="optional-label">(optional)</span><input name="timing" maxlength="200" placeholder="Ideal start or launch date" /></label>
+  </div>
+  <div class="enquiry-action"><button class="button" type="submit">Prepare my enquiry <span aria-hidden="true">↗</span></button>
+  <p class="form-note">Your email app opens with your brief ready to review. Nothing is sent until you send it.</p></div>
+  <div id="enquiry-result" hidden>
+    <p role="status" id="enquiry-status"></p>
+    <label>Your prepared enquiry<textarea id="prepared-enquiry" rows="8" readonly></textarea></label>
+    <button type="button" class="button secondary" id="copy-enquiry">Copy my enquiry</button>
+  </div>
+  <noscript><p>Enquiry preparation needs JavaScript. Email <a href="mailto:akshayanmohandass@gmail.com">akshayanmohandass@gmail.com</a> directly.</p></noscript>
+</form>
