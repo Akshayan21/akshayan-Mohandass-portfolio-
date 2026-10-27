@@ -74,7 +74,7 @@ motion.add('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-p
 motion.add('(prefers-reduced-motion: no-preference)', () => {
   gsap.from('.service-hero h1', {y:35,opacity:0,duration:.85,ease:'power3.out',clearProps:'all'});
   gsap.from('.service-hero .hero-symbol', {rotation:-35,scale:.75,duration:1.1,ease:'power3.out',clearProps:'all'});
-  document.querySelectorAll<HTMLElement>('.content-section.text:not(.has-cards):not(.home-story)').forEach(section => {
+  document.querySelectorAll<HTMLElement>('.content-section.text:not(.has-cards):not(.home-story):not([data-product-section])').forEach(section => {
     gsap.from(section.querySelector('.section-marker'), {rotation:-90, scale:.7, ease:'none',scrollTrigger:{trigger:section,start:'top 85%',end:'top 30%',scrub:1}});
     gsap.from(section.querySelector('.section-heading h2'), {x:-18,ease:'none',scrollTrigger:{trigger:section,start:'top 85%',end:'top 35%',scrub:1}});
   });
@@ -188,6 +188,16 @@ motion.add('(min-width: 1000px) and (min-height: 600px) and (prefers-reduced-mot
   return ()=>cleanups.forEach(cleanup=>cleanup());
 });
 document.fonts.ready.then(()=>ScrollTrigger.refresh());
+
+motion.add('(prefers-reduced-motion: no-preference)',()=>{
+  const hero=document.querySelector('.product-hero');
+  if(!hero) return;
+  gsap.from(hero.querySelectorAll('.hero-meta, .hero-copy > *, .hero-foot'),{opacity:0,y:18,duration:.8,stagger:.09,clearProps:'opacity,transform',ease:'power3.out'});
+  gsap.from('.product-hero-connector',{strokeDashoffset:100,duration:2,ease:'power2.out'});
+  document.querySelectorAll<HTMLElement>('[data-product-section] > .section-heading, .product-detail-list li, .product-decision-steps > p').forEach(target=>{
+    gsap.from(target,{opacity:.35,y:20,duration:.7,ease:'power3.out',clearProps:'opacity,transform',scrollTrigger:{trigger:target,start:'top 94%',once:true}});
+  });
+});
 
 motion.add('(prefers-reduced-motion: no-preference)',()=>{
   document.querySelectorAll<HTMLElement>('.home-story').forEach(section=>{

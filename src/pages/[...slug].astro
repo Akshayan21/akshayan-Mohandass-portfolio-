@@ -8,6 +8,7 @@ import StackingCards from '../components/StackingCards.astro';
 import EnquiryQuestions from '../components/EnquiryQuestions.astro';
 import ProjectScope from '../components/ProjectScope.astro';
 import HomeStory from '../components/HomeStory.astro';
+import ProductDetails from '../components/ProductDetails.astro';
 import { files, page, html } from '../lib/content';
 export function getStaticPaths() { return files.map((_, index) => ({ params: { slug: index === 0 ? undefined : ['website-design-development','startup-landing-pages','ui-ux-design'][index - 1] }, props: { index } })); }
 const { index } = Astro.props;
@@ -17,19 +18,24 @@ const service = index === 1 ? 'Business website design and development' : index 
 const render = (s: string) => html(index ? s.replaceAll('](/#contact)', `](/?service=${encodeURIComponent(service)}#contact)`) : s);
 ---
 <Layout title={p.data.seo_title} description={p.data.meta_description} route={p.data.route}>
-  <section data-home-hero={index === 0 ? true : undefined} class:list={['hero', { 'service-hero': index > 0 }]}>
+  <section data-home-hero={index === 0 ? true : undefined} class:list={['hero', { 'service-hero': index > 0, 'product-hero': index === 3 }]}>
     <div class="hero-meta flex items-center justify-between gap-4"><span>{labels[index]}</span><span class="location">Based in India · Working across the globe</span></div>
     <h1>{p.title}</h1>
     <div class="hero-bottom">
-      <div class="hero-symbol" aria-hidden="true"><svg viewBox="0 0 160 160"><path d="M28 132 132 28M28 28h104v104" fill="none" stroke="currentColor" stroke-width="14" /></svg></div>
+      <div class="hero-symbol" aria-hidden="true">{index === 3 ? <svg viewBox="0 0 160 160" fill="none" stroke="currentColor" stroke-width="3"><path class="product-hero-connector" d="M40 40h80v80H40V40" stroke-dasharray="5 6" opacity=".4"/><rect x="20" y="20" width="40" height="40" rx="10" fill="#e3e9fb"/><rect x="100" y="100" width="40" height="40" rx="10" fill="#e3e9fb"/><circle cx="120" cy="40" r="20" fill="#304bd8"/><path d="m111 40 6 6 12-13" stroke="white"/><circle cx="40" cy="120" r="20" fill="#e3e9fb"/><path d="M31 120h18m-9-9v18M111 120h18"/></svg> : <svg viewBox="0 0 160 160"><path d="M28 132 132 28M28 28h104v104" fill="none" stroke="currentColor" stroke-width="14" /></svg>}</div>
       <div class="hero-copy prose" set:html={render(p.hero)} />
     </div>
     <div class="hero-foot"><span>Strategy meets craft. Design meets development.</span><a href={index ? '#section-0' : '#services'}>Explore below ↓</a></div>
   </section>
   {p.sections.map((section, sectionIndex) => (
-    <section id={section.id} data-horizontal={index === 0 && section.kind === 'work' ? true : undefined} class:list={['content-section',section.kind, { 'home-story': index === 0 && sectionIndex < 2, 'home-process': index === 0 && section.kind === 'text' && section.cards.length > 0, 'has-cards': section.cards.length > 0, 'enquiry-questions': index === 1 && section.id === 'section-0', 'project-scope': index === 1 && section.heading === 'What your website project can include' }]}>
+    <section id={section.id} data-product-section={index === 3 ? sectionIndex : undefined} data-horizontal={index === 0 && section.kind === 'work' ? true : undefined} class:list={['content-section',section.kind, { 'home-story': index === 0 && sectionIndex < 2, 'home-process': index === 0 && section.kind === 'text' && section.cards.length > 0, 'has-cards': section.cards.length > 0, 'enquiry-questions': index === 1 && section.id === 'section-0', 'project-scope': index === 1 && section.heading === 'What your website project can include' }]}>
       <div class="section-heading"><span class="section-marker" aria-hidden="true">✳</span><h2>{section.heading}</h2>{section.kind === 'faq' && <div class="faq-introduction"><p>A few practical details before we start working together.</p><a href="/#contact">Have another question? <span aria-hidden="true">↗</span></a></div>}</div>
-      {index === 0 && sectionIndex < 2 ? <HomeStory body={section.body} product={sectionIndex === 1} /> :
+      {index === 3 && sectionIndex === 0 ? <ProductDetails body={section.body} variant="journey" /> :
+      index === 3 && sectionIndex === 1 ? <WebsitePrinciples cards={section.cards.map(card=>({...card,body:card.body.replaceAll('](/#contact)','](/?service=Product%20UI%2FUX%20design#contact)')}))} themes={['01 / Flow','02 / Structure','03 / Interface','04 / Prototype','05 / Handoff']} label="From requirements to a reviewable product" nextLink="#section-2" prefix="product-method" /> :
+      index === 3 && sectionIndex === 2 ? <StackingCards cards={section.cards} themes={['01 / First version','02 / Improve','03 / Extend','04 / Handoff']} /> :
+      index === 3 && sectionIndex === 4 ? <ProductDetails body={section.body} variant="deliverables" /> :
+      index === 3 && sectionIndex === 5 ? <ProductDetails body={section.body} variant="process" /> :
+      index === 0 && sectionIndex < 2 ? <HomeStory body={section.body} product={sectionIndex === 1} /> :
       index === 0 && section.kind === 'text' && section.cards.length > 0 ? <><p class="home-process-label">A clear path from first conversation to handover <span aria-hidden="true">↓</span></p><StackingCards cards={section.cards} themes={['01 / Define','02 / Agree','03 / Refine','04 / Handover']} /></> :
       index === 1 && section.id === 'section-0' ? <EnquiryQuestions body={section.body} /> : section.kind === 'contact' ? <Contact body={section.body} /> :
       section.kind === 'services' ? <Services cards={section.cards} /> :

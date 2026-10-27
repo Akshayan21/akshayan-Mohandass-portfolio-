@@ -1,0 +1,17 @@
+---
+import { html } from '../lib/content';
+interface Props { body:string; variant:'journey'|'deliverables'|'process' }
+const {body,variant}=Astro.props;
+const list=body.match(/(?:^- .+(?:\r?\n|$))+/m);
+const before=list ? body.slice(0,list.index).trim() : body;
+const after=list ? body.slice((list.index || 0)+list[0].length).trim() : '';
+const items=list ? [...list[0].matchAll(/^- (.+)$/gm)].map(match=>match[1]) : [];
+---
+{variant === 'process' ? <div class="product-decisions">
+  <div class="product-decision-intro"><span class="product-eyebrow">Built together</span><p>Five decisions.<br />One shared direction.</p><span class="product-decision-arrow" aria-hidden="true">↘</span></div>
+  <div class="product-decision-steps prose" set:html={html(body)} />
+</div> : <div class:list={['product-detail-layout',`product-detail-${variant}`]}>
+  <div class="product-detail-context prose" set:html={html(before)} />
+  <ol class="product-detail-list">{items.map((item,i)=><li><span class="product-detail-number" aria-hidden="true">{String(i+1).padStart(2,'0')}</span><span>{item}</span><span class="product-detail-arrow" aria-hidden="true">{variant === 'journey' ? '↗' : '+'}</span></li>)}</ol>
+  <div class="product-detail-note prose" set:html={html(after)} />
+</div>}
