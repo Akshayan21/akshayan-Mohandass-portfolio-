@@ -1,0 +1,23 @@
+---
+import { html } from '../lib/content';
+interface Props { body:string; product:boolean }
+const {body,product}=Astro.props;
+---
+<div class="home-story-content">
+  <div class="home-story-copy prose" set:html={html(body)} />
+  <div class:list={['home-story-art',{'is-product':product}]} aria-hidden="true">
+    <div class="story-art-caption"><span>{product ? 'A journey, not just screens' : 'From first impression to enquiry'}</span><span>0{product ? '2' : '1'} ↗</span></div>
+    {product ? <div class="story-flow">
+      <div class="story-flow-line"></div>
+      {['Get started','Find what matters','Take the next step'].map((label,i)=><div class="story-screen" data-story-piece>
+        <span class="story-screen-step">0{i+1}</span><span class="story-screen-title">{label}</span>
+        <div class="story-screen-block"></div><div class="story-skeleton"></div><div class="story-skeleton short"></div><span class="story-screen-action">{i === 2 ? 'Complete ✓' : 'Continue →'}</span>
+      </div>)}
+    </div> : <div class="story-browser" data-story-piece>
+      <div class="story-browser-bar"><span>● ● ●</span><span>Your business, clearly.</span><span>↗</span></div>
+      <div class="story-browser-body"><div><span class="story-small-label">Built around your customers</span><strong>Good work.<br />A clear next step.</strong><div class="story-skeleton"></div><div class="story-skeleton short"></div><span class="story-browser-action">Let’s talk ↗</span></div><div class="story-browser-shape"><span>✳</span></div></div>
+      <div class="story-browser-bottom"><span>What you do</span><span>Why it matters</span><span>Get in touch ↗</span></div>
+    </div>}
+    <div class="story-art-footer"><span>{product ? 'Structure → Screens → Prototype' : 'Clear information. A confident next step.'}</span><span>✳</span></div>
+  </div>
+</div>

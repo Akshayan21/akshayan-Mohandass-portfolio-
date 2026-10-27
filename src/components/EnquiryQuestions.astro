@@ -1,0 +1,16 @@
+---
+import { html } from '../lib/content';
+interface Props { body: string }
+const { body } = Astro.props;
+const questions = [...body.matchAll(/^- (.+)$/gm)].map(match => match[1]);
+const introduction = body.split('They need to know:')[0].trim();
+const closing = body.slice(body.lastIndexOf('\n- ')).split('\n\n').slice(1).join('\n\n').trim();
+---
+<div class="questions-context">
+  <div class="prose" set:html={html(introduction)} />
+  <div class="questions-outcome prose" set:html={html(closing)} />
+</div>
+<div class="questions-list">
+  <p class="questions-label">Before they get in touch</p>
+  <ol>{questions.map((question, index) => <li><span class="question-number" aria-hidden="true">0{index + 1}</span><h3>{question}</h3><span class="question-arrow" aria-hidden="true">↗</span></li>)}</ol>
+</div>

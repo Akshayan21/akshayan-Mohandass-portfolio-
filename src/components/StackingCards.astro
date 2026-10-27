@@ -1,0 +1,8 @@
+---
+import { html } from '../lib/content';
+interface Props { cards:{title:string;body:string}[]; themes?:string[] }
+const {cards,themes=['Start fresh','Reimagine','Refine']}=Astro.props;
+---
+<div class="starting-stack" data-stacking-cards>
+  {cards.map((card,i)=><article class={`starting-stack-card benefit-tone-${i}`} style={`--stack-index:${i}`}><div><span class="benefit-theme" aria-hidden="true">{themes[i]}</span><h3>{card.title}</h3></div><div class="prose" set:html={html(card.body)} /></article>)}
+</div>

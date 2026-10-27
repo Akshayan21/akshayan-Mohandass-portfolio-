@@ -33,9 +33,48 @@ document.querySelector('#copy-enquiry')?.addEventListener('click', async () => {
 });
 const motion = gsap.matchMedia();
 motion.add('(prefers-reduced-motion: no-preference)', () => {
-  gsap.from('.hero h1', {y:35,opacity:0,duration:.85,ease:'power3.out',clearProps:'all'});
-  gsap.from('.hero-symbol', {rotation:-35,scale:.75,duration:1.1,ease:'power3.out',clearProps:'all'});
-  document.querySelectorAll<HTMLElement>('.content-section.text:not(.has-cards)').forEach(section => {
+  const hero = document.querySelector<HTMLElement>('[data-home-hero]');
+  if(!hero) return;
+  const entrance = gsap.timeline({defaults:{duration:.85,ease:'power3.out',clearProps:'opacity,transform,clipPath'}});
+  entrance.from(hero.querySelector('.hero-meta'),{opacity:0,y:12})
+    .from(hero.querySelector('h1'),{opacity:0,y:48,clipPath:'inset(0 0 100% 0)',duration:1.15},.12)
+    .from(hero.querySelector('.hero-symbol'),{rotation:-55,scale:.6,opacity:0,duration:1.2},.3)
+    .from(hero.querySelectorAll('.hero-copy > *'),{opacity:0,y:22,stagger:.1},.45)
+    .from(hero.querySelector('.hero-foot'),{opacity:0,y:12},.7);
+
+  const removers:(()=>void)[]=[];
+  // Reveal only non-interactive introductions; pinned tracks and form fields own their motion.
+  document.querySelectorAll<HTMLElement>('#main > .content-section:not(.text):not(.about):not(.contact) > .section-heading, #main > .content-section > .section-intro, .service-scope, .faq-list > details').forEach(target => {
+    const reveal=gsap.from(target,{opacity:.15,y:26,duration:.8,ease:'power3.out',clearProps:'opacity,transform',scrollTrigger:{trigger:target,start:'top 94%',once:true}});
+    const finish=()=>reveal.progress(1);
+    target.addEventListener('focusin',finish);
+    removers.push(()=>target.removeEventListener('focusin',finish));
+  });
+  return ()=>removers.forEach(remove=>remove());
+});
+motion.add('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)',()=>{
+  const hero=document.querySelector<HTMLElement>('[data-home-hero]');
+  const symbol=hero?.querySelector('svg');
+  if(!hero || !symbol) return;
+  // Animate the SVG inside the entrance wrapper so the two effects never fight.
+  const moveX=gsap.quickTo(symbol,'x',{duration:.7,ease:'power3.out'});
+  const moveY=gsap.quickTo(symbol,'y',{duration:.7,ease:'power3.out'});
+  const rotate=gsap.quickTo(symbol,'rotation',{duration:.8,ease:'power3.out'});
+  const move=(event:PointerEvent)=>{
+    const rect=hero.getBoundingClientRect();
+    const x=(event.clientX-rect.left)/rect.width-.5;
+    const y=(event.clientY-rect.top)/rect.height-.5;
+    moveX(x*28);moveY(y*24);rotate(x*12);
+  };
+  const reset=()=>{moveX(0);moveY(0);rotate(0);};
+  hero.addEventListener('pointermove',move);
+  hero.addEventListener('pointerleave',reset);
+  return ()=>{hero.removeEventListener('pointermove',move);hero.removeEventListener('pointerleave',reset);};
+});
+motion.add('(prefers-reduced-motion: no-preference)', () => {
+  gsap.from('.service-hero h1', {y:35,opacity:0,duration:.85,ease:'power3.out',clearProps:'all'});
+  gsap.from('.service-hero .hero-symbol', {rotation:-35,scale:.75,duration:1.1,ease:'power3.out',clearProps:'all'});
+  document.querySelectorAll<HTMLElement>('.content-section.text:not(.has-cards):not(.home-story)').forEach(section => {
     gsap.from(section.querySelector('.section-marker'), {rotation:-90, scale:.7, ease:'none',scrollTrigger:{trigger:section,start:'top 85%',end:'top 30%',scrub:1}});
     gsap.from(section.querySelector('.section-heading h2'), {x:-18,ease:'none',scrollTrigger:{trigger:section,start:'top 85%',end:'top 35%',scrub:1}});
   });
@@ -117,7 +156,59 @@ motion.add('(min-width: 1100px) and (min-height: 850px) and (prefers-reduced-mot
   };
 });
 window.addEventListener('pagehide',()=>motion.revert(),{once:true});
+
+motion.add('(min-width: 1000px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)',()=>{
+  const cleanups=[...document.querySelectorAll<HTMLElement>('[data-benefit-sequence]')].map(sequence=>{
+  const track=sequence.querySelector<HTMLElement>('.benefit-track')!;
+  const viewport=sequence.querySelector<HTMLElement>('.benefit-viewport')!;
+  const cards=[...sequence.querySelectorAll<HTMLElement>('.benefit-card')];
+  const previous=sequence.querySelector<HTMLButtonElement>('[data-benefit-prev]')!;
+  const next=sequence.querySelector<HTMLButtonElement>('[data-benefit-next]')!;
+  const setProgress=gsap.quickSetter(sequence.querySelector('.benefit-progress>span'),'scaleX');
+  sequence.classList.add('is-pinned');
+  let distance=0,offsets:number[]=[];
+  const measure=()=>{distance=Math.max(0,track.scrollWidth-viewport.clientWidth+10);const origin=cards[0].offsetLeft;offsets=cards.map(card=>card.offsetLeft-origin);};
+  measure();
+  let navigation:gsap.core.Tween|undefined;
+  const tween=gsap.to(track,{x:()=>-distance,ease:'none',onUpdate(){setProgress(this.progress());previous.disabled=this.progress()<.001;next.disabled=this.progress()>.999;},scrollTrigger:{trigger:sequence,start:'top 24px',end:()=>`+=${distance*1.15}`,pin:true,scrub:1,anticipatePin:1,invalidateOnRefresh:true,onRefreshInit:measure}});
+  const trigger=tween.scrollTrigger!;
+  const cancel=()=>{navigation?.kill();};
+  const current=()=>offsets.reduce((best,offset,i)=>Math.abs(Math.min(offset,distance)-tween.progress()*distance)<Math.abs(Math.min(offsets[best],distance)-tween.progress()*distance)?i:best,0);
+  const go=(index:number,instant=false)=>{
+    cancel();const top=trigger.start+(trigger.end-trigger.start)*Math.min(1,offsets[Math.max(0,Math.min(index,cards.length-1))]/Math.max(1,distance));
+    if(instant){window.scrollTo({top,behavior:'instant'});trigger.update();trigger.getTween()?.progress(1);return;}
+    const position={top:scrollY};navigation=gsap.to(position,{top,duration:.9,ease:'power3.inOut',onUpdate:()=>window.scrollTo({top:position.top,behavior:'instant'})});
+  };
+  const prev=()=>go(current()-1),advance=()=>go(current()+1);
+  const focus=(event:FocusEvent)=>{const index=cards.findIndex(card=>card.contains(event.target as Node));if(index>=0){viewport.scrollLeft=0;go(index,true);}};
+  previous.addEventListener('click',prev);next.addEventListener('click',advance);track.addEventListener('focusin',focus);
+  window.addEventListener('wheel',cancel,{passive:true});window.addEventListener('touchstart',cancel,{passive:true});
+  return ()=>{cancel();previous.removeEventListener('click',prev);next.removeEventListener('click',advance);track.removeEventListener('focusin',focus);window.removeEventListener('wheel',cancel);window.removeEventListener('touchstart',cancel);sequence.classList.remove('is-pinned');gsap.set(sequence.querySelector('.benefit-progress>span'),{clearProps:'transform'});};
+  });
+  return ()=>cleanups.forEach(cleanup=>cleanup());
+});
 document.fonts.ready.then(()=>ScrollTrigger.refresh());
+
+motion.add('(prefers-reduced-motion: no-preference)',()=>{
+  document.querySelectorAll<HTMLElement>('.home-story').forEach(section=>{
+    const art=section.querySelector<HTMLElement>('.home-story-art')!;
+    gsap.from(art,{y:32,opacity:.25,duration:.9,ease:'power3.out',clearProps:'opacity,transform',scrollTrigger:{trigger:art,start:'top 92%',once:true}});
+    gsap.from(section.querySelectorAll('[data-story-piece]'),{y:24,rotation:section.querySelector('.is-product')?-4:3,stagger:.12,ease:'none',scrollTrigger:{trigger:art,start:'top 90%',end:'bottom 65%',scrub:.7}});
+    const line=section.querySelector('.story-flow-line');
+    if(line) gsap.from(line,{scaleX:0,ease:'none',scrollTrigger:{trigger:art,start:'top 85%',end:'bottom 65%',scrub:.7}});
+  });
+});
+
+motion.add('(min-width: 1000px) and (min-height: 600px) and (prefers-reduced-motion: no-preference)',()=>{
+  const stack=document.querySelector<HTMLElement>('[data-stacking-cards]');
+  if(!stack) return;
+  const cards=[...stack.querySelectorAll<HTMLElement>('.starting-stack-card')];
+  stack.classList.add('is-stacking');
+  cards.slice(0,-1).forEach((card,index)=>{
+    gsap.to(card,{scale:.96,ease:'none',scrollTrigger:{trigger:cards[index+1],start:'top 90%',end:()=>`top ${48+(index+1)*18}px`,scrub:.7,invalidateOnRefresh:true}});
+  });
+  return ()=>stack.classList.remove('is-stacking');
+});
 document.querySelectorAll<HTMLElement>('.faq-list').forEach(list=>{
   const toggles=new Map<HTMLDetailsElement,(open:boolean)=>void>();
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
